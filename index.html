@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Math Study Hub - App Navigation</title>
+    
+    <!-- PWA / App Standalone Meta Tags -->
+    <meta name="theme-color" content="#0ea5e9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.webmanifest">
+    
+    <!-- Fuentes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- MathJax Configuration (CRITICAL FIX) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <!-- MathJax & Marked -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <style>
+        /* --- VARIABLES & RESET --- */
+        :root {
+            --bg-body: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --accent-color: #0ea5e9;
+            --accent-hover: #0284c7;
+            --border-color: #e2e8f0;
+            --formula-bg: #f8fafc;
+            --formula-border: #cbd5e1;
+            
+            --ai-gradient: linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%);
+            --ai-bg-light: #eff6ff;
+            --ai-border: #bfdbfe;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04); 
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            
+            --nav-width: 280px;
+            --header-height-mobile: 60px;
+            --tabs-height: 50px;
+            --bottom-nav-height: 60px;
+        }
+
+        body.dark-mode {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --border-color: #334155;
+            --formula-bg: #020617;
+            --formula-border: #475569;
+            --ai-bg-light: #172554;
+            --ai-border: #1e3a8a;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+        /* --- TYPOGRAPHY BASE --- */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-size: 16px;
+            line-height: 1.65;
+            transition: all 0.3s ease;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            z-index: 50;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            padding-top: env(safe-area-inset-top);
+        }
+
+        .header-top {
+            padding: 0.5rem 1rem;
+            display: flex; justify-content: space-between; align-items: center; gap: 0.8rem;
+            max-width: 1600px; margin: 0 auto; width: 100%; height: var(--header-height-mobile);
+        }
+
+        .header-tabs {
+            display: none; 
+            gap: 0.5rem; padding: 0 1rem 0.5rem 1rem; max-width: 1600px; margin: 0 auto; width: 100%;
+            overflow-x: auto; scrollbar-width: none; height: var(--tabs-height); align-items: center;
+        }
+        .header-tabs::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            background: transparent; border: 1px solid transparent; color: var(--text-secondary);
+            padding: 0.4rem 0.8rem; border-radius: 99px; font-size: 0.85rem; font-weight: 500;
+            cursor: pointer; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 0.4rem;
+        }
+        .tab-btn:hover { background: var(--bg-body); color: var(--text-primary); }
+        .tab-btn.active { 
+            background: rgba(14, 165, 233, 0.1); color: var(--accent-color); font-weight: 600; border-color: rgba(14, 165, 233, 0.2);
+        }
+
+        .logo { font-weight: 700; font-size: 1.1rem; color: var(--accent-color); display: flex; align-items: center; gap: 0.4rem; letter-spacing: -0.025em; white-space: nowrap; }
+        .logo span span { display: none; } 
+        
+        .search-container { flex: 1; position: relative; min-width: 0; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .search-input {
+            width: 100%; padding: 0.5rem 2rem 0.5rem 2.2rem;
+            border-radius: 99px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-primary);
+            font-size: 0.95rem; transition: all 0.2s;
+        }
+        .search-input:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
+        .search-icon { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); opacity: 0.5; font-size: 0.95rem; }
+        .clear-icon {
+            position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%);
+            cursor: pointer; color: var(--text-secondary); display: none; font-size: 1rem; padding: 0.2rem;
+        }
+
+        .mobile-search-trigger { display: flex; } 
+        .mobile-search-cancel { display: none; font-size: 0.95rem; color: var(--accent-color); background: none; border: none; padding: 0 0.5rem; cursor: pointer; white-space: nowrap; font-weight: 500;}
+
+        @media (max-width: 1023px) {
+            .search-container {
+                display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                background: var(--bg-card); z-index: 20; align-items: center; padding: 0 1rem;
+                padding-top: env(safe-area-inset-top);
+            }
+            .header.search-open .search-container { display: flex; }
+            .header.search-open .mobile-search-cancel { display: block; }
+            .header.search-open .menu-toggle-btn, .header.search-open .logo, .header.search-open .mobile-search-trigger, .header.search-open .theme-btn { opacity: 0; pointer-events: none; }
+        }
+        @media (min-width: 1024px) {
+            .mobile-search-trigger { display: none; } 
+            .search-container { display: block !important; position: relative; top: auto; left: auto; height: auto; background: transparent; padding: 0; z-index: auto; }
+            .mobile-search-cancel { display: none !important; }
+        }
+
+        .btn-icon {
+            background: transparent; border: 1px solid var(--border-color); border-radius: 8px; width: 36px; height: 36px;
+            cursor: pointer; color: var(--text-primary); display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; flex-shrink: 0;
+        }
+        .btn-icon:hover { background: var(--bg-body); color: var(--accent-color); border-color: var(--accent-color); }
+        .menu-toggle-btn { display: flex; } 
+
+        /* --- BOTTOM NAV --- */
+        .bottom-nav {
+            display: flex; position: fixed; bottom: 0; left: 0; width: 100%;
+            height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+            background: var(--bg-card); border-top: 1px solid var(--border-color); z-index: 1000;
+            justify-content: space-around; padding-bottom: env(safe-area-inset-bottom);
+            box-shadow: 0 -1px 3px rgba(0,0,0,0.05);
+        }
+        .bottom-nav-item {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--text-secondary); font-size: 0.7rem; font-weight: 500; gap: 4px;
+            cursor: pointer; transition: color 0.2s; border: none; background: transparent; padding: 0;
+            min-height: 44px; /* Touch target */
+        }
+        .bottom-nav-item svg { width: 24px; height: 24px; stroke-width: 2px; transition: stroke 0.2s; }
+        .bottom-nav-item.active { color: var(--accent-color); }
+        .bottom-nav-item.active svg { stroke: var(--accent-color); }
+
+        /* --- LAYOUT & SIDEBAR --- */
+        .app-layout { display: block; flex: 1; overflow: hidden; position: relative; width: 100%; }
+        .sidebar {
+            position: fixed; top: 0; left: -100%; width: 84%; height: 100vh; z-index: 1100; 
+            background: var(--bg-card); border-right: 1px solid var(--border-color);
+            overflow-y: auto; display: flex; flex-direction: column; padding: 1.5rem;
+            padding-top: calc(1.5rem + env(safe-area-inset-top));
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-lg);
+        }
+        .sidebar.active { left: 0; }
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            z-index: 1050; display: none; backdrop-filter: blur(2px);
+        }
+        .overlay.active { display: block; }
+
+        @media (min-width: 1024px) {
+            .app-layout { display: grid; grid-template-columns: var(--nav-width) 1fr; max-width: 1600px; margin: 0 auto; }
+            .sidebar {
+                position: sticky; top: calc(var(--header-height-mobile) + var(--tabs-height));
+                left: auto; width: auto; height: 100%; z-index: 1; box-shadow: none; transform: none; transition: none; padding-top: 1.5rem;
+            }
+            .menu-toggle-btn, .overlay, .bottom-nav { display: none !important; }
+            .header-top { padding: 0.75rem 1.5rem; }
+            .header-tabs { display: flex; padding: 0 1.5rem 0.75rem 1.5rem; justify-content: flex-start; }
+            .logo span span { display: inline; }
+        }
+
+        /* --- NAV STYLES --- */
+        .nav-section-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-secondary); margin-bottom: 0.75rem; font-weight: 700; padding-left: 0.5rem; margin-top: 1rem; }
+        .nav-group { margin-bottom: 0.5rem; }
+        .nav-group-header {
+            display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.75rem; border-radius: 8px;
+            color: var(--text-primary); cursor: pointer; font-weight: 600; font-size: 0.95rem;
+            transition: background 0.2s; user-select: none; min-height: 44px;
+        }
+        .nav-group-header:hover { background: var(--bg-body); }
+        .nav-chevron { font-size: 0.75rem; opacity: 0.5; transition: transform 0.3s; margin-left: 0.5rem;}
+        .nav-group.expanded .nav-chevron { transform: rotate(180deg); }
+        .nav-group-links { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-in-out; padding-left: 0.75rem; }
+        .nav-group.expanded .nav-group-links { max-height: 500px; }
+        .nav-link {
+            display: block; padding: 0.5rem 0.75rem; margin: 2px 0; border-radius: 6px;
+            color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; transition: all 0.2s; cursor: pointer;
+            border-left: 2px solid transparent; min-height: 44px; display: flex; align-items: center;
+        }
+        .nav-link:hover { color: var(--text-primary); background: var(--bg-body); }
+        .nav-link.active { background: rgba(14, 165, 233, 0.08); color: var(--accent-color); font-weight: 500; border-left-color: var(--accent-color); }
+        .btn-print-sidebar, .btn-print {
+            background: transparent; border: none; cursor: pointer; opacity: 0.6; transition: opacity 0.2s; padding: 2px 6px; border-radius: 4px;
+            min-height: 44px; min-width: 44px; display: inline-flex; align-items: center; justify-content: center;
+        }
+        .btn-print-sidebar:hover, .btn-print:hover { opacity: 1; background: rgba(0,0,0,0.05); }
+        .btn-print-sidebar { font-size: 1rem; }
+        .btn-print { font-size: 1.2rem; }
+
+        /* --- MAIN CONTENT & READING CONTAINER --- */
+        .main-container { flex: 1; position: relative; overflow: hidden; display: flex; flex-direction: column; width: 100%; }
+        
+        .main-view {
+            display: none; flex: 1; overflow-y: auto; 
+            padding: 1rem 1rem 0 1rem; 
+            padding-bottom: calc(var(--bottom-nav-height) + 2rem + env(safe-area-inset-bottom));
+            scroll-behavior: smooth; animation: fadeIn 0.3s ease-out;
+        }
+        @media (min-width: 1024px) { .main-view { padding: 2rem; padding-bottom: 2rem; } }
+        .main-view.active { display: block; }
+
+        .reading-container { width: 100%; max-width: 720px; margin: 0 auto; }
+
+        .syllabus-section { display: none; }
+        .syllabus-section.active-section { display: block; animation: fadeIn 0.3s ease-out; }
+
+        /* --- CARDS (Reading Optimized) --- */
+        .card {
+            background: var(--bg-card); 
+            border: 1px solid var(--border-color); 
+            border-radius: 16px; 
+            margin-bottom: 1.5rem; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            scroll-margin-top: 1rem;
+        }
+        @media (min-width: 1024px) {
+            .card { box-shadow: var(--shadow-sm); }
+            .card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--accent-color); }
+        }
+        
+        .card-header {
+            padding: 1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; 
+            background: var(--bg-card); border-bottom: 1px solid transparent;
+            transition: background-color 0.2s, border-color 0.2s;
+            min-height: 56px; 
+        }
+        .card-header:hover { background-color: rgba(0,0,0,0.01); }
+        body.dark-mode .card-header:hover { background-color: rgba(255,255,255,0.02); }
+        .card.expanded .card-header { border-bottom-color: var(--border-color); background-color: rgba(14, 165, 233, 0.03); }
+        
+        .card-title { 
+            font-weight: 600; font-size: 1.05rem; display: flex; align-items: center; gap: 0.8rem; 
+            color: var(--text-primary); line-height: 1.4;
+        }
+        
+        .card-icon { 
+            color: var(--accent-color); font-size: 1.1rem; 
+            background: rgba(14, 165, 233, 0.1); width: 36px; height: 36px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; border-radius: 10px;
+        }
+        
+        .card-body {
+            padding: 0 1.25rem; max-height: 0; overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.5s ease, opacity 0.4s; opacity: 0;
+        }
+        .card.expanded .card-body { padding-top: 1.5rem; padding-bottom: 1.5rem; max-height: 8000px; opacity: 1; }
+        .card.expanded .chevron { transform: rotate(180deg); color: var(--accent-color); }
+        .chevron { transition: transform 0.3s; font-size: 0.8rem; opacity: 0.5; }
+
+        /* --- CONTENT ELEMENTS --- */
+        .topic-header {
+            font-size: 0.8rem; font-weight: 700; color: var(--accent-color);
+            margin: 2rem 0 1rem; text-transform: uppercase; letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color); padding-bottom: 0.4rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        
+        .formula-box {
+            background: var(--formula-bg); border: 1px solid var(--formula-border);
+            border-left: 4px solid var(--accent-color); border-radius: 12px;
+            padding: 1.5rem; margin: 1.5rem 0; font-family: 'JetBrains Mono', monospace; overflow-x: auto;
+            -webkit-overflow-scrolling: touch; 
+        }
+        
+        .info-box {
+            background: var(--bg-body); border-radius: 12px; padding: 1.25rem; margin: 1.5rem 0;
+            font-size: 0.95rem; border: 1px dashed var(--border-color); color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        
+        .list-clean { list-style: none; padding-left: 0.5rem; }
+        .list-clean li { margin-bottom: 0.85rem; position: relative; padding-left: 1.5rem; line-height: 1.6; }
+        .list-clean li::before { content: "•"; position: absolute; left: 0; color: var(--accent-color); font-weight: bold; }
+        
+        .trig-table {
+            width: 100%; text-align: center; font-size: 0.9rem;
+            border-collapse: separate; border-spacing: 0;
+            border: 1px solid var(--border-color); border-radius: 12px;
+            overflow: hidden; margin: 1.5rem 0;
+            display: block; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch;
+        }
+        .trig-table th, .trig-table td { padding: 0.85rem; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); }
+        .trig-table th:last-child, .trig-table td:last-child { border-right: none; }
+        .trig-table tr:last-child td { border-bottom: none; }
+        .trig-table th { background: var(--bg-body); font-weight: 600; color: var(--text-primary); }
+        .trig-table td { background: var(--bg-card); color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
+
+        /* --- AI / UI --- */
+        .generator-panel { position: relative; overflow: hidden; }
+        .generator-controls {
+            display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: center;
+            margin-top: 1.5rem; background: var(--bg-body); padding: 1rem; border-radius: 12px;
+        }
+        @media (max-width: 1023px) {
+            .generator-controls { flex-direction: column; align-items: stretch; }
+            .ai-btn { width: 100%; justify-content: center; margin-top: 0.5rem; }
+        }
+        .gen-select {
+            padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-color);
+            background: var(--bg-card); color: var(--text-primary); min-width: 200px;
+            font-family: 'Inter', sans-serif; cursor: pointer;
+            min-height: 44px; 
+        }
+        .ai-btn {
+            background: var(--ai-gradient); color: white; border: none; padding: 0.75rem 1.5rem;
+            border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3);
+            min-height: 44px; 
+        }
+        .ai-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4); }
+        .ai-btn-sm { padding: 0.5rem 1rem; font-size: 0.85rem; margin-top: 1rem; min-height: 44px;}
+        .ai-result {
+            margin-top: 1.5rem; padding: 1.5rem; background: var(--ai-bg-light); border: 1px solid var(--ai-border);
+            border-radius: 12px; display: none; font-size: 1rem; text-align: left;
+            line-height: 1.6;
+        }
+        .ai-result.active { display: block; animation: fadeIn 0.4s ease; }
+
+        /* --- CHAT --- */
+        .chat-ui-container {
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .chat-header {
+            background: var(--ai-gradient); color: white; padding: 1.25rem;
+            display: flex; justify-content: space-between; align-items: center; font-weight: 600;
+        }
+        .chat-body {
+            flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; background: var(--bg-body);
+        }
+        .chat-msg {
+            max-width: 85%; padding: 0.8rem 1rem; border-radius: 16px; font-size: 0.95rem; line-height: 1.5;
+        }
+        .chat-msg.bot { align-self: flex-start; background: var(--bg-card); border: 1px solid var(--border-color); border-bottom-left-radius: 4px; }
+        .chat-msg.user { align-self: flex-end; background: var(--accent-color); color: white; border-bottom-right-radius: 4px; }
+        .chat-input-area {
+            padding: 1rem; background: var(--bg-card); border-top: 1px solid var(--border-color); display: flex; gap: 0.5rem;
+        }
+        .chat-input {
+            flex: 1; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 99px; background: var(--bg-body); color: var(--text-primary); outline: none;
+            min-height: 44px;
+        }
+        
+        .chat-widget-btn {
+            position: fixed; 
+            bottom: calc(var(--bottom-nav-height) + 1.5rem + env(safe-area-inset-bottom)); 
+            right: 1.5rem; 
+            width: 56px; height: 56px;
+            border-radius: 50%; background: var(--ai-gradient); color: white; border: none; cursor: pointer;
+            box-shadow: var(--shadow-lg); z-index: 1000; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; transition: transform 0.3s;
+        }
+        .chat-widget-btn:hover { transform: scale(1.1) rotate(10deg); }
+        @media (min-width: 1024px) { .chat-widget-btn { bottom: 2rem; right: 2rem; width: 64px; height: 64px; font-size: 1.75rem; } }
+
+        .tutor-embed { max-width: 800px; margin: 0 auto; height: 100%; border-radius: 16px; box-shadow: var(--shadow-md); }
+        @media (max-width: 1023px) { .tutor-embed { height: 75vh; } }
+
+        .loading-dots:after { content: ' .'; animation: dots 1s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } 80%, 100% { content: ''; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- PRINT STYLES --- */
+        @media print {
+            @page { margin: 14mm; }
+            .header, .sidebar, .overlay, .chat-widget-btn, .generator-controls, .ai-btn, .tab-btn, .nav-section, .btn-icon, .no-print, .menu-toggle-btn, .bottom-nav, .mobile-search-trigger {
+                display: none !important;
+            }
+            body { background-color: white !important; color: black !important; height: auto !important; overflow: visible !important; display: block !important; }
+            .app-layout, .main-container, .main-view, .syllabus-section, .reading-container { display: block !important; height: auto !important; overflow: visible !important; padding: 0 !important; margin: 0 !important; width: 100% !important; max-width: none !important; }
+            .card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; page-break-inside: avoid; margin-bottom: 1rem !important; max-height: none !important; }
+            .card-body { max-height: none !important; opacity: 1 !important; padding-bottom: 1.5rem !important; display: block !important; padding-top: 1.5rem !important; }
+            .card-header { border-bottom: 1px solid #ddd !important; background-color: #fafafa !important; }
+            .formula-box, .info-box, .trig-table { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd !important; }
+            mjx-container { overflow: visible !important; }
+            body.printing * { visibility: hidden; }
+            body.printing #__printRoot, body.printing #__printRoot * { visibility: visible; }
+            body.printing #__printRoot { position: absolute; left: 0; top: 0; width: 100%; background: white; z-index: 9999; }
+            body.hide-solutions details { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header" id="main-header">
+        <div class="header-top">
+            <button class="btn-icon menu-toggle-btn" onclick="toggleSidebar()" style="border:none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+            </button>
+            <div class="logo">
+                <span>📚 MathHub <span style="font-size:0.75em; background:var(--ai-gradient); -webkit-background-clip:text; color:transparent;">AI</span></span>
+            </div>
+            
+            <button class="btn-icon mobile-search-trigger" onclick="toggleSearchMobile()" style="border:none;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+
+            <div class="search-container" id="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" class="search-input" id="search" placeholder="Buscar tema o fórmula..." oninput="handleSearch()">
+                <span class="clear-icon" id="clear-search" onclick="clearSearch()">✕</span>
+                <button class="mobile-search-cancel" onclick="toggleSearchMobile()">Cancelar</button>
+            </div>
+
+            <button class="btn-icon theme-btn" onclick="toggleTheme()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+        </div>
+
+        <nav class="header-tabs">
+            <button class="tab-btn active" onclick="showMainView('syllabus')" id="tab-syllabus">📚 Syllabus</button>
+            <button class="tab-btn" onclick="showMainView('practice')" id="tab-practice">✨ Práctica</button>
+            <button class="tab-btn" onclick="showMainView('exams')" id="tab-exams">⚡ Exámenes</button>
+            <button class="tab-btn" onclick="showMainView('tutor')" id="tab-tutor">💬 Tutor</button>
+        </nav>
+    </header>
+
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    <div class="app-layout">
+        
+        <aside class="sidebar" id="sidebar">
+            <div class="nav-section-title">Contenido Programático</div>
+            
+            <div class="nav-group" id="group-aritmetica">
+                <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div style="flex:1; font-weight:600;">1. Aritmética</div>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <button class="btn-print-sidebar no-print" onclick="event.stopPropagation(); printMultiple(['enteros', 'fracciones', 'razones'], 'Guía de Aritmética')" title="Imprimir Sección">🖨️</button>
+                        <span class="nav-chevron">▼</span>
+                    </div>
+                </div>
+                <div class="nav-group-links">
+                    <a class="nav-link" onclick="navigateToCard('view-aritmetica', 'enteros')">Números Enteros</a>
+                    <a class="nav-link" onclick="navigateToCard('view-aritmetica', 'fracciones')">Fracciones</a>
+                    <a class="nav-link" onclick="navigateToCard('view-aritmetica', 'razones')">Razones y Proporciones</a>
+                </div>
+            </div>
+            
+            <div class="nav-group" id="group-algebra">
+                <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div style="flex:1; font-weight:600;">2. Álgebra</div>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <button class="btn-print-sidebar no-print" onclick="event.stopPropagation(); printMultiple(['nociones', 'factorizacion', 'ecuaciones', 'logaritmos'], 'Guía de Álgebra')" title="Imprimir Sección">🖨️</button>
+                        <span class="nav-chevron">▼</span>
+                    </div>
+                </div>
+                <div class="nav-group-links">
+                    <a class="nav-link" onclick="navigateToCard('view-algebra', 'nociones')">Expresiones Algebraicas</a>
+                    <a class="nav-link" onclick="navigateToCard('view-algebra', 'factorizacion')">Factorización</a>
+                    <a class="nav-link" onclick="navigateToCard('view-algebra', 'ecuaciones')">Ecuaciones</a>
+                    <a class="nav-link" onclick="navigateToCard('view-algebra', 'logaritmos')">Logaritmos</a>
+                </div>
+            </div>
+            
+            <div class="nav-group" id="group-geometria">
+                <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div style="flex:1; font-weight:600;">3. Geometría</div>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <button class="btn-print-sidebar no-print" onclick="event.stopPropagation(); printMultiple(['geo-fundamentos', 'triangulos', 'poligonos', 'cuerpos', 'circunferencia'], 'Guía de Geometría')" title="Imprimir Sección">🖨️</button>
+                        <span class="nav-chevron">▼</span>
+                    </div>
+                </div>
+                <div class="nav-group-links">
+                    <a class="nav-link" onclick="navigateToCard('view-geometria', 'geo-fundamentos')">Fundamentos</a>
+                    <a class="nav-link" onclick="navigateToCard('view-geometria', 'triangulos')">Triángulos</a>
+                    <a class="nav-link" onclick="navigateToCard('view-geometria', 'poligonos')">Polígonos</a>
+                    <a class="nav-link" onclick="navigateToCard('view-geometria', 'cuerpos')">Cuerpos Geométricos</a>
+                    <a class="nav-link" onclick="navigateToCard('view-geometria', 'circunferencia')">Circunferencia</a>
+                </div>
+            </div>
+            
+            <div class="nav-group" id="group-trigonometria">
+                <div class="nav-group-header" onclick="toggleNavGroup(this)">
+                    <div style="flex:1; font-weight:600;">4. Trigonometría</div>
+                    <div style="display:flex; align-items:center; gap:5px;">
+                        <button class="btn-print-sidebar no-print" onclick="event.stopPropagation(); printMultiple(['trig-func'], 'Guía de Trigonometría')" title="Imprimir Sección">🖨️</button>
+                        <span class="nav-chevron">▼</span>
+                    </div>
+                </div>
+                <div class="nav-group-links">
+                    <a class="nav-link" onclick="navigateToCard('view-trigonometria', 'trig-func')">Funciones Trig.</a>
+                </div>
+            </div>
+
+            <div style="margin-top:auto; font-size:0.8rem; color:var(--text-secondary); text-align:center; padding-top:2rem;">
+                Gonza's Study Hub v5.7
+            </div>
+        </aside>
+
+        <div class="main-container">
+
+            <!-- ================= VIEW 1: SYLLABUS ================= -->
+            <div id="view-syllabus" class="main-view active">
+                <div class="reading-container">
+                    
+                    <!-- Section: ARITMÉTICA -->
+                    <div id="view-aritmetica" class="syllabus-section active-section">
+                        <h2 style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                            <span style="color:var(--accent-color);">🔢</span> Aritmética
+                        </h2>
+
+                        <div class="card" id="enteros">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">1</span> Números Enteros</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('enteros', 'Números Enteros')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Orden de Operaciones</div>
+                                <div class="info-box">
+                                    <ol class="list-clean">
+                                        <li>1. Signos de agrupación: (), [], {}</li>
+                                        <li>2. Potencias y Raíces</li>
+                                        <li>3. Multiplicación y División</li>
+                                        <li>4. Suma y Resta</li>
+                                    </ol>
+                                </div>
+                                <div class="topic-header">Propiedades (MCD y MCM)</div>
+                                <div class="info-box">
+                                    <p><strong>MCD:</strong> Factores comunes con menor exponente.</p>
+                                    <p><strong>MCM:</strong> Factores comunes y no comunes con mayor exponente.</p>
+                                </div>
+                                <button class="ai-btn ai-btn-sm no-print" onclick="generateExercise('Operaciones combinadas con enteros y MCM/MCD', 'enteros-ai')">
+                                    ✨ Practicar este tema
+                                </button>
+                                <div id="enteros-ai" class="ai-result no-print"></div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="fracciones">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">2</span> Fracciones y Decimales</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('fracciones', 'Fracciones y Decimales')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Operaciones</div>
+                                <div class="formula-box">
+                                    <p>Suma/Resta: \(\frac{a}{b} \pm \frac{c}{d} = \frac{ad \pm bc}{bd}\)</p>
+                                    <p>Multiplicación: \(\frac{a}{b} \cdot \frac{c}{d} = \frac{ac}{bd}\)</p>
+                                    <p>División: \(\frac{a}{b} \div \frac{c}{d} = \frac{ad}{bc}\)</p>
+                                </div>
+                                <div class="topic-header">Fracción Generatriz</div>
+                                <div class="info-box">
+                                    <p><strong>Decimal Exacto:</strong> \(0.25 = \frac{25}{100}\)</p>
+                                    <p><strong>Periódico Puro:</strong> \(0.\overline{3} = \frac{3}{9}\)</p>
+                                </div>
+                                <button class="ai-btn ai-btn-sm no-print" onclick="generateExercise('Operaciones con fracciones y conversión de decimales', 'frac-ai')">
+                                    ✨ Practicar este tema
+                                </button>
+                                <div id="frac-ai" class="ai-result no-print"></div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="razones">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">5</span> Razones y Proporciones</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('razones', 'Razones y Proporciones')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Regla de Tres</div>
+                                <div class="info-box">
+                                    <p><strong>Directa:</strong> \(x = \frac{b \cdot c}{a}\) (Cruza y divide)</p>
+                                    <p><strong>Inversa:</strong> \(x = \frac{a \cdot b}{c}\) (Multiplica recto y divide)</p>
+                                </div>
+                                <div class="topic-header">Porcentajes</div>
+                                <div class="formula-box">
+                                    \[\text{Parte} = \frac{\text{Total} \times \%}{100}\]
+                                </div>
+                                <button class="ai-btn ai-btn-sm no-print" onclick="generateExercise('Problemas de regla de tres simple y compuesta', 'razones-ai')">
+                                    ✨ Practicar este tema
+                                </button>
+                                <div id="razones-ai" class="ai-result no-print"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: ÁLGEBRA -->
+                    <div id="view-algebra" class="syllabus-section">
+                        <h2 style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                            <span style="color:var(--accent-color);">✖️</span> Álgebra
+                        </h2>
+
+                        <div class="card" id="nociones">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">1</span> Expresiones Algebraicas</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('nociones', 'Expresiones Algebraicas')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Productos Notables</div>
+                                <div class="formula-box">
+                                    <p>\((a+b)^2 = a^2 + 2ab + b^2\)</p>
+                                    <p>\((a-b)^2 = a^2 - 2ab + b^2\)</p>
+                                    <p>\((a+b)(a-b) = a^2 - b^2\)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="factorizacion">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">2</span> Divisibilidad y Factorización</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('factorizacion', 'Divisibilidad y Factorización')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Teorema del Resto y Ruffini</div>
+                                <div class="info-box">
+                                    <p>El resto de dividir \(P(x)\) entre \((x-a)\) es igual a \(P(a)\).</p>
+                                </div>
+                                <div class="topic-header">Casos de Factorización</div>
+                                <ul class="list-clean">
+                                    <li>Factor Común, Diferencia de Cuadrados, Trinomio Cuadrado Perfecto.</li>
+                                </ul>
+                                <button class="ai-btn ai-btn-sm no-print" onclick="generateExercise('Factorización de polinomios (Ruffini y casos notables)', 'fact-ai')">
+                                    ✨ Practicar este tema
+                                </button>
+                                <div id="fact-ai" class="ai-result no-print"></div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="ecuaciones">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">5</span> Ecuaciones</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('ecuaciones', 'Ecuaciones')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Primer Grado</div>
+                                <div class="formula-box">\(ax + b = 0 \implies x = -b/a\)</div>
+                                
+                                <div class="topic-header">Segundo Grado (Bhaskara)</div>
+                                <div class="formula-box">
+                                    \[x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}\]
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="logaritmos">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">6</span> Logaritmos</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('logaritmos', 'Logaritmos')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Definición y Propiedades</div>
+                                <div class="formula-box">
+                                    \[\log_a(b) = c \iff a^c = b\]
+                                    \[\log(A \cdot B) = \log A + \log B\]
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: GEOMETRÍA -->
+                    <div id="view-geometria" class="syllabus-section">
+                        <h2 style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                            <span style="color:var(--accent-color);">📐</span> Geometría
+                        </h2>
+
+                        <div class="card" id="geo-fundamentos">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">1</span> Punto, Recta y Ángulos</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('geo-fundamentos', 'Punto, Recta y Ángulos')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Clasificación de Ángulos</div>
+                                <div class="info-box">
+                                    <p><strong>Agudo:</strong> < 90° | <strong>Recto:</strong> = 90° | <strong>Obtuso:</strong> > 90°</p>
+                                    <p><strong>Suplementarios:</strong> Suman 180° | <strong>Complementarios:</strong> Suman 90°</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="triangulos">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">4</span> Triángulos</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('triangulos', 'Triángulos')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Teorema Fundamentales</div>
+                                <div class="formula-box">
+                                    <p><strong>Suma Ángulos:</strong> \(\alpha + \beta + \gamma = 180°\)</p>
+                                    <p><strong>Pitágoras:</strong> \(a^2 + b^2 = c^2\)</p>
+                                    <p><strong>Thales:</strong> \(\frac{A}{B} = \frac{A'}{B'}\)</p>
+                                </div>
+                                <button class="ai-btn ai-btn-sm no-print" onclick="generateExercise('Geometría: Teorema de Pitágoras y Thales', 'tri-ai')">
+                                    ✨ Practicar este tema
+                                </button>
+                                <div id="tri-ai" class="ai-result no-print"></div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="poligonos">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">5</span> Polígonos</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('poligonos', 'Polígonos')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="formula-box">
+                                    <p><strong>Suma ángulos internos:</strong> \(180(n-2)\)</p>
+                                    <p><strong>Área Regular:</strong> \(\frac{\text{Perímetro} \times \text{Apotema}}{2}\)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="cuerpos">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">6</span> Poliedros y Cuerpos Redondos</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('cuerpos', 'Poliedros y Cuerpos Redondos')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Volúmenes</div>
+                                <div class="formula-box">
+                                    <p><strong>Prisma/Cilindro:</strong> \(V = A_{base} \cdot h\)</p>
+                                    <p><strong>Pirámide/Cono:</strong> \(V = \frac{1}{3} A_{base} \cdot h\)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card" id="circunferencia">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">8</span> Circunferencia</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('circunferencia', 'Circunferencia')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="formula-box">
+                                    <p><strong>Longitud:</strong> \(L = 2\pi r\)</p>
+                                    <p><strong>Área:</strong> \(A = \pi r^2\)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: TRIGONOMETRÍA -->
+                    <div id="view-trigonometria" class="syllabus-section">
+                        <h2 style="margin-bottom:1.5rem; display:flex; align-items:center; gap:0.5rem;">
+                            <span style="color:var(--accent-color);">〰️</span> Trigonometría
+                        </h2>
+
+                        <div class="card" id="trig-func">
+                            <div class="card-header" onclick="toggleCard(this)">
+                                <div class="card-title"><span class="card-icon">1</span> Funciones Trigonométricas</div>
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <button class="btn-print no-print" onclick="event.stopPropagation(); printElementById('trig-func', 'Funciones Trigonométricas')" aria-label="Imprimir sección">🖨️</button>
+                                    <span class="chevron">▼</span>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="topic-header">Definiciones</div>
+                                <div class="formula-box">
+                                    \(\sin = \frac{Op}{Hip}, \quad \cos = \frac{Ady}{Hip}, \quad \tan = \frac{Op}{Ady}\)
+                                </div>
+                                
+                                <div class="topic-header">Ángulos Notables</div>
+                                <table class="trig-table">
+                                    <tr><th></th><th>30°</th><th>45°</th><th>60°</th></tr>
+                                    <tr><td>sin</td><td>1/2</td><td>√2/2</td><td>√3/2</td></tr>
+                                    <tr><td>cos</td><td>√3/2</td><td>√2/2</td><td>1/2</td></tr>
+                                    <tr><td>tan</td><td>√3/3</td><td>1</td><td>√3</td></tr>
+                                </table>
+                                <button class="ai-btn ai-btn-sm no-print" onclick="generateExercise('Valores trigonométricos e identidades simples', 'trig-ai')">
+                                    ✨ Practicar este tema
+                                </button>
+                                <div id="trig-ai" class="ai-result no-print"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- End reading-container -->
+            </div> <!-- End view-syllabus -->
+
+
+            <!-- ================= VIEW 2: PRACTICE ================= -->
+            <div id="view-practice" class="main-view">
+                <div class="reading-container">
+                    <div class="generator-panel">
+                        <div style="font-size:3rem; margin-bottom:1rem;">✨</div>
+                        <h2 style="margin-bottom:0.5rem; color:var(--text-primary);">Práctica Rápida</h2>
+                        <p style="color:var(--text-secondary); margin:0 auto;">
+                            Genera ejercicios sueltos para practicar un tema específico o una mezcla general.
+                        </p>
+                        
+                        <div class="generator-controls">
+                            <select id="practice-topic" class="gen-select">
+                                <option value="Aritmética">🔢 Aritmética</option>
+                                <option value="Álgebra">✖️ Álgebra</option>
+                                <option value="Geometría">📐 Geometría</option>
+                                <option value="Trigonometría">〰️ Trigonometría</option>
+                                <option value="Todos los temas (Mix)">📚 Mix General</option>
+                            </select>
+                            
+                            <select id="practice-count" class="gen-select">
+                                <option value="5">5 Ejercicios</option>
+                                <option value="10">10 Ejercicios</option>
+                                <option value="15">15 Ejercicios</option>
+                            </select>
+                            
+                            <button class="ai-btn" style="margin-top:0;" onclick="generateCustomExam('practice-topic', 'practice-count', 'practice-result')">
+                                Generar Práctica
+                            </button>
+                        </div>
+
+                        <!-- Print Actions Container (Initially Hidden) -->
+                        <div id="print-actions-practice" class="no-print" style="display:none; text-align:right; margin-bottom:10px; align-items:center; justify-content:flex-end; gap:15px;">
+                            <label style="font-size:0.9rem; display:flex; align-items:center; gap:5px; cursor:pointer; color:var(--text-secondary);">
+                                <input type="checkbox" id="check-solutions-practice" checked> Incluir soluciones
+                            </label>
+                            <button class="btn-print" style="font-size: 0.9rem; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px;" title="Imprimir Resultado">🖨️ Imprimir/PDF</button>
+                        </div>
+                        <div id="practice-result" class="ai-result"></div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ================= VIEW 3: EXAMS ================= -->
+            <div id="view-exams" class="main-view">
+                <div class="reading-container">
+                    <div class="card expanded" style="max-width:800px; margin:0 auto; cursor:default;">
+                        <div class="card-header" style="background:var(--bg-body); cursor:default;">
+                            <div class="card-title"><span class="card-icon">⚡</span> Simulador de Examen</div>
+                        </div>
+                        <div class="card-body">
+                            <div style="text-align:center; padding-bottom:1.5rem;">
+                                <p style="color:var(--text-secondary); max-width:600px; margin:0 auto;">
+                                    Configura un examen completo. La Inteligencia Artificial creará una hoja de respuestas oculta para que te evalúes.
+                                </p>
+                            </div>
+                            
+                            <div class="generator-controls">
+                                <select id="exam-topic" class="gen-select">
+                                    <option value="Todos los temas (Mix)">📚 Examen General (Mix)</option>
+                                    <option value="Aritmética">🔢 Aritmética</option>
+                                    <option value="Álgebra">✖️ Álgebra</option>
+                                    <option value="Geometría">📐 Geometría</option>
+                                    <option value="Trigonometría">〰️ Trigonometría</option>
+                                </select>
+                                
+                                <select id="exam-count" class="gen-select">
+                                    <option value="10">10 Ejercicios</option>
+                                    <option value="20">20 Ejercicios</option>
+                                    <option value="30">30 Ejercicios</option>
+                                    <option value="40">40 Ejercicios</option>
+                                    <option value="50">50 Ejercicios</option>
+                                </select>
+                                
+                                <button class="ai-btn" style="margin-top:0;" onclick="generateCustomExam('exam-topic', 'exam-count', 'exam-result')">
+                                    🚀 Crear Examen
+                                </button>
+                            </div>
+
+                            <!-- Print Actions Container (Initially Hidden) -->
+                            <div id="print-actions-exam" class="no-print" style="display:none; text-align:right; margin-bottom:10px; align-items:center; justify-content:flex-end; gap:15px;">
+                                <label style="font-size:0.9rem; display:flex; align-items:center; gap:5px; cursor:pointer; color:var(--text-secondary);">
+                                    <input type="checkbox" id="check-solutions-exam" checked> Incluir soluciones
+                                </label>
+                                <button class="btn-print" style="font-size: 0.9rem; padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 6px;" title="Imprimir Resultado">🖨️ Imprimir/PDF</button>
+                            </div>
+                            <div id="exam-result" class="ai-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ================= VIEW 4: TUTOR ================= -->
+            <div id="view-tutor" class="main-view">
+                <div class="reading-container">
+                    <div class="tutor-embed chat-ui-container">
+                        <div class="chat-header">
+                            <span>💬 Tutor Inteligente</span>
+                        </div>
+                        <div class="chat-body" id="tutorBody">
+                            <div class="chat-msg bot">¡Hola! Soy tu tutor personal. Estoy aquí para explicarte cualquier tema que no entiendas, resolver dudas paso a paso o darte ejemplos. ¿Por dónde empezamos? 🤓</div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" class="chat-input" id="tutorInput" placeholder="Escribe tu duda aquí..." onkeypress="if(event.key === 'Enter') sendTutorMessage()">
+                            <button class="btn-icon" style="background:var(--ai-gradient); color:white; border:none;" onclick="sendTutorMessage()">➤</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- End Main Container -->
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <nav class="bottom-nav no-print">
+        <button class="bottom-nav-item active" onclick="showMainView('syllabus')" id="btm-syllabus">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            <span>Syllabus</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showMainView('practice')" id="btm-practice">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+            <span>Práctica</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showMainView('exams')" id="btm-exams">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Exámenes</span>
+        </button>
+        <button class="bottom-nav-item" onclick="showMainView('tutor')" id="btm-tutor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+            <span>Tutor</span>
+        </button>
+    </nav>
+
+    <!-- FLOATING CHAT WIDGET SHORTCUT -->
+    <button class="chat-widget-btn no-print" onclick="toggleChatMobile()">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+
+    <script>
+        // API KEY
+        const apiKey = ""; 
+
+        // --- GLOBAL VARIABLES ---
+        let observer = null;
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initCollapsibles();
+            initIntersectionObserver();
+        });
+
+        // --- MOBILE CHECK ---
+        function isMobile() {
+            return window.matchMedia('(max-width: 1023px)').matches;
+        }
+
+        // --- MOBILE SEARCH TOGGLE ---
+        function toggleSearchMobile() {
+            if (!isMobile()) return;
+            const header = document.getElementById('main-header');
+            const searchInput = document.getElementById('search');
+            
+            header.classList.toggle('search-open');
+            
+            if (header.classList.contains('search-open')) {
+                // Focus input after transition
+                setTimeout(() => searchInput.focus(), 100);
+            } else {
+                // Optional: Clear search on close? For now, we keep it as per request
+                // clearSearch(); 
+            }
+        }
+
+        // --- VIEW MANAGEMENT LOGIC ---
+        function showMainView(viewId) {
+            document.querySelectorAll('.main-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById('view-' + viewId).classList.add('active');
+
+            // Update Desktop Tabs
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeTab = document.getElementById('tab-' + viewId);
+            if(activeTab) activeTab.classList.add('active');
+
+            // Update Mobile Bottom Nav
+            document.querySelectorAll('.bottom-nav-item').forEach(btn => btn.classList.remove('active'));
+            const activeBtm = document.getElementById('btm-' + viewId);
+            if(activeBtm) activeBtm.classList.add('active');
+
+            if(isMobile()) {
+                closeSidebarMobile();
+                // Close search if open when changing views
+                document.getElementById('main-header').classList.remove('search-open');
+            }
+        }
+
+        // --- SIDEBAR TOGGLES ---
+        function toggleSidebar() {
+            if(!isMobile()) return; 
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.overlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+
+        function toggleNavGroup(headerElement) {
+            const group = headerElement.parentElement;
+            group.classList.toggle('expanded');
+        }
+
+        function initCollapsibles() {
+            const groups = document.querySelectorAll('.nav-group');
+            if (!isMobile()) {
+                groups.forEach(g => g.classList.add('expanded'));
+            } else {
+                if (groups.length > 0) groups[0].classList.add('expanded');
+            }
+        }
+
+        // --- NAVIGATION TO SPECIFIC CARD ---
+        function navigateToCard(sectionId, cardId) {
+            showMainView('syllabus');
+            document.querySelectorAll('.syllabus-section').forEach(section => {
+                section.classList.remove('active-section');
+            });
+            document.getElementById(sectionId).classList.add('active-section');
+
+            const card = document.getElementById(cardId);
+            if(card) {
+                card.classList.add('expanded');
+                card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                card.style.borderColor = 'var(--accent-color)';
+                setTimeout(() => card.style.borderColor = 'var(--border-color)', 1500);
+            }
+
+            if(isMobile()) {
+                closeSidebarMobile();
+            }
+        }
+
+        function closeSidebarMobile() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.querySelector('.overlay');
+            if(sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            }
+        }
+
+        // --- INTERSECTION OBSERVER FOR ACTIVE LINK ---
+        function initIntersectionObserver() {
+            const options = {
+                root: document.getElementById('view-syllabus'),
+                rootMargin: '-20% 0px -70% 0px',
+                threshold: 0
+            };
+
+            observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const cardId = entry.target.id;
+                        highlightSidebarLink(cardId);
+                    }
+                });
+            }, options);
+
+            document.querySelectorAll('.card').forEach(card => {
+                observer.observe(card);
+            });
+        }
+
+        function highlightSidebarLink(cardId) {
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            const activeLink = document.querySelector(`.nav-link[onclick*="'${cardId}'"]`);
+            if(activeLink) {
+                activeLink.classList.add('active');
+            }
+        }
+
+        // --- GEMINI API HANDLER ---
+        async function callGeminiAPI(prompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ parts: [{ text: prompt }] }] };
+            let attempts = 0;
+            const delays = [1000, 2000, 4000];
+
+            while (attempts < 3) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                    const data = await response.json();
+                    return data.candidates[0].content.parts[0].text;
+                } catch (error) {
+                    attempts++;
+                    if (attempts === 3) throw error;
+                    await new Promise(r => setTimeout(r, delays[attempts-1]));
+                }
+            }
+        }
+        
+        // --- SAFE MARKDOWN PARSER (FIXED) ---
+        function parseMarkdownSafe(text) {
+            // 1. Protect Math Blocks with unique placeholders
+            const mathBlocks = [];
+            // Use a placeholder that Markdown won't interpret as formatting
+            // avoid underscores in placeholders to prevent markdown bold/italic issues
+            let protectedText = text.replace(/\$\$([\s\S]*?)\$\$/g, (match) => {
+                mathBlocks.push(match);
+                return `MATHJAXBLOCK${mathBlocks.length - 1}`;
+            });
+            protectedText = protectedText.replace(/\$([^\$\n]+?)\$/g, (match) => {
+                mathBlocks.push(match);
+                return `MATHJAXBLOCK${mathBlocks.length - 1}`;
+            });
+
+            // Protect block math \[ ... \]
+            protectedText = protectedText.replace(/\\\[([\s\S]*?)\\\]/g, (match) => {
+                mathBlocks.push(match);
+                return `MATHJAXBLOCK${mathBlocks.length - 1}`;
+            });
+            // Protect inline math \( ... \)
+            protectedText = protectedText.replace(/\\\(([\s\S]*?)\\\)/g, (match) => {
+                mathBlocks.push(match);
+                return `MATHJAXBLOCK${mathBlocks.length - 1}`;
+            });
+
+
+            // 2. Parse Markdown
+            let html = marked.parse(protectedText);
+
+            // 3. Restore Math Blocks
+            // Replace the placeholders back to original math content
+            html = html.replace(/MATHJAXBLOCK(\d+)/g, (match, index) => {
+                return mathBlocks[parseInt(index)];
+            });
+
+            return html;
+        }
+
+        // --- EXAM & PRACTICE GENERATOR ---
+        async function generateCustomExam(topicSelectId, countSelectId, resultContainerId) {
+            const topic = document.getElementById(topicSelectId).value;
+            const count = document.getElementById(countSelectId).value;
+            const container = document.getElementById(resultContainerId);
+            
+            // Manage print actions visibility
+            const actionsId = resultContainerId === 'exam-result' ? 'print-actions-exam' : 'print-actions-practice';
+            const checkId = resultContainerId === 'exam-result' ? 'check-solutions-exam' : 'check-solutions-practice';
+            document.getElementById(actionsId).style.display = 'none';
+
+            container.classList.add('active');
+            container.innerHTML = '<span class="loading-dots">Generando ' + count + ' ejercicios de ' + topic + '...</span>';
+
+            const prompt = `Actúa como un profesor de matemáticas exigente. Genera una práctica/examen con las siguientes características:
+            1. Cantidad: EXACTAMENTE ${count} ejercicios.
+            2. Tema: ${topic} (Si es "Mix", mezcla Aritmética, Álgebra, Geometría y Trigonometría aleatoriamente).
+            3. Nivel: Pre-universitario / Ingreso.
+            4. Formato de Salida (Markdown):
+               - Una lista numerada (1. 2. 3...) con SOLO los enunciados de los ejercicios.
+               - Al final de todo, agrega un separador horizontal y luego un bloque HTML: <details><summary><strong>📄 Ver Hoja de Respuestas</strong></summary> ...contenido de soluciones paso a paso... </details>.
+            5. Usa LaTeX entre signos de dólar ($...$) para las fórmulas matemáticas.
+            6. Sé variado en los tipos de problemas.`;
+
+            try {
+                const text = await callGeminiAPI(prompt);
+                container.innerHTML = parseMarkdownSafe(text); // Use safe parser
+                MathJax.typesetPromise([container]).then(() => {
+                    // Show actions and setup click
+                    const actionsDiv = document.getElementById(actionsId);
+                    actionsDiv.style.display = 'flex';
+                    const btn = actionsDiv.querySelector('button');
+                    btn.onclick = function() { printGeneratedContent(resultContainerId, topic, count, checkId); };
+                });
+            } catch (e) {
+                container.innerHTML = '<span style="color:red">Error al generar. Intenta de nuevo.</span>';
+                console.error(e);
+            }
+        }
+
+        // --- SINGLE EXERCISE ---
+        async function generateExercise(topic, resultId) {
+            const container = document.getElementById(resultId);
+            container.classList.add('active');
+            container.innerHTML = '<span class="loading-dots">Generando ejercicio...</span>';
+
+            const prompt = `Genera un ejercicio práctico de nivel pre-universitario sobre: "${topic}".
+            Formato de respuesta (Markdown):
+            **Ejercicio:** [Enunciado]
+            <details>
+            <summary>Ver Solución</summary>
+            [Solución paso a paso]
+            </details>
+            Usa LaTeX entre signos de dólar ($...$) para las fórmulas.`;
+
+            try {
+                const text = await callGeminiAPI(prompt);
+                container.innerHTML = parseMarkdownSafe(text); // Use safe parser
+                MathJax.typesetPromise([container]);
+            } catch (e) {
+                container.innerHTML = '<span style="color:red">Error de conexión.</span>';
+            }
+        }
+
+        // --- TUTOR CHAT LOGIC ---
+        function toggleChatMobile() {
+            if (isMobile()) {
+                showMainView('tutor');
+            } else {
+                showMainView('tutor'); 
+            }
+        }
+
+        async function sendTutorMessage() {
+            const input = document.getElementById('tutorInput');
+            const body = document.getElementById('tutorBody');
+            const text = input.value.trim();
+            if(!text) return;
+
+            const uDiv = document.createElement('div');
+            uDiv.className = 'chat-msg user';
+            uDiv.textContent = text;
+            body.appendChild(uDiv);
+            input.value = '';
+            body.scrollTop = body.scrollHeight;
+
+            const lDiv = document.createElement('div');
+            lDiv.className = 'chat-msg bot loading-dots';
+            lDiv.textContent = 'Analizando';
+            body.appendChild(lDiv);
+            body.scrollTop = body.scrollHeight;
+
+            try {
+                const systemPrompt = "Eres un tutor de matemáticas amable y experto. Responde en español. Usa Markdown y LaTeX ($...$) para fórmulas. Sé breve y didáctico. Estás en un chat de pantalla completa.";
+                const response = await callGeminiAPI(`${systemPrompt}\nPregunta: ${text}`);
+                
+                body.removeChild(lDiv);
+                
+                const bDiv = document.createElement('div');
+                bDiv.className = 'chat-msg bot';
+                bDiv.innerHTML = parseMarkdownSafe(response); // Use safe parser
+                body.appendChild(bDiv);
+                
+                MathJax.typesetPromise([bDiv]);
+                body.scrollTop = body.scrollHeight;
+            } catch (e) {
+                body.removeChild(lDiv);
+                const eDiv = document.createElement('div');
+                eDiv.className = 'chat-msg bot';
+                eDiv.textContent = 'Error de conexión.';
+                body.appendChild(eDiv);
+            }
+        }
+
+        // --- UI UTILS ---
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+        }
+
+        function toggleCard(header) {
+            header.parentElement.classList.toggle('expanded');
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const cards = document.querySelectorAll('.card');
+            const clearBtn = document.getElementById('clear-search');
+            
+            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
+
+            if(query.length > 0) {
+                // Switch to syllabus to see results
+                if(!document.getElementById('view-syllabus').classList.contains('active')) {
+                    showMainView('syllabus');
+                }
+                
+                document.querySelectorAll('.syllabus-section').forEach(s => s.classList.add('active-section'));
+                cards.forEach(card => {
+                    const text = card.textContent.toLowerCase();
+                    if(text.includes(query)) {
+                        card.style.display = 'block';
+                        if(query.length >= 2) card.classList.add('expanded');
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            } else {
+                cards.forEach(card => {
+                    card.style.display = ''; 
+                    card.classList.remove('expanded');
+                });
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('search').value = '';
+            handleSearch();
+        }
+
+        // --- PRINT HELPER FUNCTIONS ---
+        
+        function printElementById(id, titleText) {
+            printMultiple([id], titleText);
+        }
+
+        function printGeneratedContent(containerId, topic, count, checkboxId) {
+            const container = document.getElementById(containerId);
+            if (!container || !container.innerHTML) return;
+
+            const includeSolutions = document.getElementById(checkboxId).checked;
+            if (!includeSolutions) {
+                document.body.classList.add('hide-solutions');
+            }
+
+            MathJax.typesetPromise([container]).then(() => {
+                const content = container.cloneNode(true);
+                content.style.display = 'block';
+                content.style.border = 'none';
+                content.style.boxShadow = 'none';
+                
+                const titleText = `Ejercitario: ${topic} · ${count} ejercicios`;
+                const existingRoot = document.getElementById('__printRoot');
+                if (existingRoot) document.body.removeChild(existingRoot);
+
+                const printRoot = document.createElement('div');
+                printRoot.id = '__printRoot';
+                
+                const header = document.createElement('div');
+                header.style.marginBottom = '20px';
+                header.style.borderBottom = '2px solid #0ea5e9';
+                header.style.paddingBottom = '10px';
+                header.innerHTML = `
+                    <h1 style="margin:0; font-size: 24px; color: #0f172a;">${titleText}</h1>
+                    <p style="margin:5px 0 0; color: #64748b; font-size: 14px;">Generado por MathHub AI - ${new Date().toLocaleString()}</p>
+                `;
+                printRoot.appendChild(header);
+                printRoot.appendChild(content);
+
+                document.body.appendChild(printRoot);
+                document.body.classList.add('printing');
+
+                window.print();
+
+                setTimeout(() => {
+                    document.body.classList.remove('printing');
+                    document.body.classList.remove('hide-solutions');
+                    if(document.body.contains(printRoot)) document.body.removeChild(printRoot);
+                }, 500);
+            });
+        }
+
+        function printMultiple(ids, titleText) {
+            const existingRoot = document.getElementById('__printRoot');
+            if (existingRoot) document.body.removeChild(existingRoot);
+
+            const printRoot = document.createElement('div');
+            printRoot.id = '__printRoot';
+            
+            const header = document.createElement('div');
+            header.style.marginBottom = '20px';
+            header.style.borderBottom = '2px solid #0ea5e9';
+            header.style.paddingBottom = '10px';
+            header.innerHTML = `
+                <h1 style="margin:0; font-size: 24px; color: #0f172a;">${titleText}</h1>
+                <p style="margin:5px 0 0; color: #64748b; font-size: 14px;">Generado por MathHub AI - ${new Date().toLocaleString()}</p>
+            `;
+            printRoot.appendChild(header);
+
+            let found = false;
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) {
+                    found = true;
+                    const clone = el.cloneNode(true);
+                    clone.classList.add('expanded');
+                    clone.style.display = 'block'; 
+                    clone.style.boxShadow = 'none';
+                    clone.style.border = '1px solid #ccc';
+                    clone.style.marginBottom = '20px';
+                    
+                    const body = clone.querySelector('.card-body');
+                    if(body) {
+                        body.style.maxHeight = 'none';
+                        body.style.opacity = '1';
+                        body.style.padding = '1.5rem';
+                        body.style.display = 'block';
+                    }
+                    const aiBtns = clone.querySelectorAll('.ai-btn, .btn-print, .no-print');
+                    aiBtns.forEach(btn => btn.style.display = 'none');
+
+                    printRoot.appendChild(clone);
+                }
+            });
+
+            if(!found) {
+                alert('No hay contenido disponible para imprimir.');
+                return;
+            }
+
+            document.body.appendChild(printRoot);
+            document.body.classList.add('printing');
+
+            window.print();
+
+            setTimeout(() => {
+                document.body.classList.remove('printing');
+                if(document.body.contains(printRoot)) document.body.removeChild(printRoot);
+            }, 500);
+        }
+    </script>
+    
+    <!-- 
+    EXAMPLE: manifest.webmanifest (Create this file alongside html)
+    {
+      "name": "Math Study Hub",
+      "short_name": "MathHub",
+      "start_url": ".",
+      "display": "standalone",
+      "background_color": "#ffffff",
+      "theme_color": "#0ea5e9",
+      "icons": [
+        {
+          "src": "https://cdn-icons-png.flaticon.com/512/3771/3771518.png",
+          "sizes": "512x512",
+          "type": "image/png"
+        }
+      ]
+    }
+
+    EXAMPLE: Service Worker (sw.js)
+    self.addEventListener('fetch', function(event) {
+      // Basic pass-through
+    });
+    -->
+</body>
+</html>
