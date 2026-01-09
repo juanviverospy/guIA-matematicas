@@ -85,8 +85,8 @@
             font-size: 16px;
             line-height: 1.65;
             transition: all 0.3s ease;
-            height: 100vh;
-            overflow: hidden;
+            height: 100vh; /* Fixed height for app shell */
+            overflow: hidden; /* Prevent body scroll */
             display: flex;
             flex-direction: column;
         }
@@ -187,8 +187,16 @@
         .bottom-nav-item.active { color: var(--accent-color); }
         .bottom-nav-item.active svg { stroke: var(--accent-color); }
 
-        /* --- LAYOUT & SIDEBAR --- */
-        .app-layout { display: block; flex: 1; overflow: hidden; position: relative; width: 100%; }
+        /* --- LAYOUT & SIDEBAR (SCROLL FIX APPLIED) --- */
+        .app-layout { 
+            display: flex; /* Changed from block to flex */
+            flex-direction: column; /* Ensure vertical stacking */
+            flex: 1; 
+            overflow: hidden; 
+            position: relative; 
+            width: 100%; 
+        }
+        
         .sidebar {
             position: fixed; top: 0; left: -100%; width: 84%; height: 100vh; z-index: 1100; 
             background: var(--bg-card); border-right: 1px solid var(--border-color);
@@ -251,6 +259,7 @@
             padding: 1rem 1rem 0 1rem; 
             padding-bottom: calc(var(--bottom-nav-height) + 2rem + env(safe-area-inset-bottom));
             scroll-behavior: smooth; animation: fadeIn 0.3s ease-out;
+            -webkit-overflow-scrolling: touch; /* IMPORTANT for iOS momentum scroll */
         }
         @media (min-width: 1024px) { .main-view { padding: 2rem; padding-bottom: 2rem; } }
         .main-view.active { display: block; }
@@ -543,7 +552,7 @@
             </div>
 
             <div style="margin-top:auto; font-size:0.8rem; color:var(--text-secondary); text-align:center; padding-top:2rem;">
-                Gonza's Study Hub v5.7
+                Gonza's Study Hub v5.8
             </div>
         </aside>
 
